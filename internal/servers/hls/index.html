@@ -1,50 +1,167 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width">
-<style>
-html, body {
-	margin: 0;
-	padding: 0;
-	height: 100%;
-	font-family: 'Arial', sans-serif;
-}
-#video {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgb(30, 30, 30);
-}
-#message {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	text-align: center;
-	justify-content: center;
-	font-size: 16px;
-	font-weight: bold;
-	color: white;
-	pointer-events: none;
-	padding: 20px;
-	box-sizing: border-box;
-	text-shadow: 0 0 5px black;
-}
-</style>
+    <title>choopstrim</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        html, body {
+	          background-color: black;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+        }
+
+        .video-container {
+            flex: 1;
+            max-width: 1280px;
+            margin: auto;
+            position: relative;
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            background: rgb(30, 30, 30);
+        }
+	#message2 {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		text-align: center;
+		justify-content: center;
+		font-size: 16px;
+		font-weight: bold;
+		color: white;
+		pointer-events: none;
+		padding: 20px;
+		box-sizing: border-box;
+		text-shadow: 0 0 5px black;
+	}
+        .chat-container {
+            flex: 1;
+            max-width: 300px;
+            margin: auto;
+            padding: 0 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            height: 500px; /* Adjust as needed */
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 0;
+	           color: white;
+        }
+
+        .chat-input {
+            padding: 10px;
+        }
+
+        .chat-input input[type="text"] {
+            border: 1px solid #ccc;
+            border-radius: 0;
+            padding: 8px;
+            margin-bottom: 10px;
+            width: calc(100% - 10px);
+            -webkit-appearance: none; /* Remove default styles for webkit browsers */
+        }
+
+        .chat-input .input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+	           color: white;
+        }
+
+        .chat-input .name-input {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .chat-input .send-button {
+            border: 1px solid #ccc;
+            border-radius: 0;
+            padding: 8px 20px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-<video id="video"></video>
-<div id="message"></div>
+<div class="container">
+    <div class="video-container">
+        <video id="video"></video>
+        <div id="message2"></div>
+    </div>
 
-<script src="hls.min.js"></script>
+    <div class="chat-container">
+        <div class="chat-messages" id="chat">
+            <!-- Chat messages will be displayed here -->
+        </div>
 
+        <form id="message-form" class="chat-input" method="post" action="">
+            <input type="text" name="message" id="message" placeholder="" autocomplete="off">
+            <div class="input-row">
+                <label for="name">Name:</label>
+                <input type="text" name="name" id="name" class="name-input" autocomplete="off">
+                <input type="submit" value="Send" class="send-button">
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $(document).ready(function() {
+        // Function to fetch and display chat messages
+        function fetchMessages() {
+            $.ajax({
+                url: "fetch_messages.php", // URL of the PHP script to fetch messages
+                type: "GET",
+                success: function(data) {
+                    $("#chat").html(data); // Update chat messages
+                    scrollChatToBottom(); // Scroll chat to bottom
+                }
+            });
+        }
+
+        // Function to scroll chat to bottom
+        function scrollChatToBottom() {
+            var chatContainer = document.getElementById("chat");
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Call fetchMessages() initially to display existing messages
+        fetchMessages();
+
+        // Submit form via AJAX
+        $("#message-form").submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+            var formData = $(this).serialize(); // Serialize form data
+            $.ajax({
+                url: "send_message.php", // URL of the PHP script to send message
+                type: "POST",
+                data: formData,
+                success: function() {
+                    fetchMessages(); // Update chat messages after sending message
+                    $("#message").val(""); // Clear message input field
+                }
+            });
+        });
+    });
+</script>
 <script>
 
 const retryPause = 2000;
